@@ -1,0 +1,38 @@
+name: sociacity
+description: This is a social type app where user can make post and add comment to the post
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: "^3.3.0"
+
+dependencies:
+  api:
+    path: packages/api
+  app_ui:
+    path: packages/app_ui
+  bloc: ^8.1.4
+  cloud_firestore: ^5.4.0
+  equatable: ^2.0.7
+  firebase_auth: ^5.2.0
+  firebase_core: ^3.4.0
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^8.1.6
+  flutter_localizations:
+    sdk: flutter
+  fluttertoast: ^8.2.8
+  intl: ^0.19.0
+  loading_overlay: ^0.4.2
+  timeago: ^3.7.0
+
+dev_dependencies:
+  bloc_test: ^9.1.7
+  flutter_test:
+    sdk: flutter
+  mocktail: ^1.0.4
+  very_good_analysis: ^5.1.0
+
+flutter:
+  uses-material-design: true
+  generate: true
