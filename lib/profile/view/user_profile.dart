@@ -26,116 +26,129 @@ class ProfilePage extends StatelessWidget {
           create: (context) => LoginBloc(FirebaseAuth.instance),
         ),
       ],
-      child: const ProfileView(),
+      child: ProfileView(
+        userId: userId,
+      ),
     );
   }
 }
 
 class ProfileView extends StatelessWidget {
-  const ProfileView({super.key});
+  const ProfileView({required this.userId, super.key});
+  final String userId;
 
   @override
   Widget build(BuildContext context) {
+    Future<void> refresh() async {
+      await context.read<UserCubit>().loadUserProfile(userId);
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: BlocConsumer<UserCubit, UserState>(
-        listener: (context, state) {
-          if (state is UserError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is UserLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is UserLoaded) {
-            final userData = state.userData;
+      body: RefreshIndicator(
+        onRefresh: refresh,
+        child: BlocConsumer<UserCubit, UserState>(
+          listener: (context, state) {
+            if (state is UserError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is UserLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is UserLoaded) {
+              final userData = state.userData;
 
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Center(
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.blueAccent,
-                      child: Text(
-                        '${userData['name'][0]}',
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.blueAccent,
+                        child: Text(
+                          '${userData['name'][0]}',
+                          style: const TextStyle(
+                              fontSize: 40, color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '${userData['name']}',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${userData['email']}',
                         style:
-                            const TextStyle(fontSize: 40, color: Colors.white),
+                            const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '${userData['name']}',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Phone: ${userData['phone']}',
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${userData['email']}',
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Phone: ${userData['phone']}',
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Joined: ${timeago.format((userData['createdAt'] as Timestamp).toDate())}',
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(
-                      height: AppSpacing.lg,
-                    ),
-                    BlocConsumer<LoginBloc, LoginState>(
-                      listener: (context, state) {
-                        if (state is LoginError) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(state.error)),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Joined: ${timeago.format((userData['createdAt'] as Timestamp).toDate())}',
+                        style:
+                            const TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      const SizedBox(
+                        height: AppSpacing.lg,
+                      ),
+                      BlocConsumer<LoginBloc, LoginState>(
+                        listener: (context, state) {
+                          if (state is LoginError) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(state.error)),
+                            );
+                          }
+                          if (state is LoginInitial) {
+                            Navigator.of(context)
+                                .pushReplacementNamed(LoginPage.route);
+                          }
+                        },
+                        builder: (context, state) {
+                          return AppButton.blueDress(
+                            onPressed: () {
+                              context.read<LoginBloc>().add(Logout());
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (state is LoginLoading)
+                                  const SizedBox(
+                                    width: 25,
+                                    height: 25,
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.white,
+                                    ),
+                                  )
+                                else
+                                  const Text('Logout'),
+                              ],
+                            ),
                           );
-                        }
-                        if (state is LoginInitial) {
-                          Navigator.of(context)
-                              .pushReplacementNamed(LoginPage.route);
-                        }
-                      },
-                      builder: (context, state) {
-                        return AppButton.blueDress(
-                          onPressed: () {
-                            context.read<LoginBloc>().add(Logout());
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (state is LoginLoading)
-                                const SizedBox(
-                                  width: 25,
-                                  height: 25,
-                                  child: CircularProgressIndicator(
-                                    color: AppColors.white,
-                                  ),
-                                )
-                              else
-                                const Text('Logout'),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          } else if (state is UserError) {
-            return Center(child: Text(state.message));
-          }
-          return const Center(child: Text('No data available.'));
-        },
+              );
+            } else if (state is UserError) {
+              return Center(child: Text(state.message));
+            }
+            return const Center(child: Text('No data available.'));
+          },
+        ),
       ),
     );
   }

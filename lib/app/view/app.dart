@@ -22,6 +22,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => CommentCubit('')),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           appBarTheme: AppBarTheme(
             iconTheme: const IconThemeData(color: AppColors.white),

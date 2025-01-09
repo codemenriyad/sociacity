@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_typing_uninitialized_variables
+// ignore_for_file: prefer_typing_uninitialized_variables, unnecessary_cast
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,14 +18,14 @@ class PostCubit extends Cubit<PostState> {
   Future<void> loadPosts() async {
     emit(PostLoading());
     try {
-      final QuerySnapshot snapshot = await _firestore
+      final snapshot = await _firestore
           .collection('posts')
           .orderBy('timestamp', descending: true)
           .get();
-               
+
       final postsWithUserNames = await Future.wait(
         snapshot.docs.map((doc) async {
-          final post = doc.data()! as Map<String, dynamic>;
+          final post = doc.data() as Map<String, dynamic>;
           final userId = post['userId'];
 
           final userSnapshot =
@@ -51,14 +51,17 @@ class PostCubit extends Cubit<PostState> {
 
   Future<void> addPost(String content) async {
     try {
-      PostLoading();
-      final userId = _auth.currentUser;
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+
       await _firestore.collection('posts').add({
         'content': content,
         'timestamp': FieldValue.serverTimestamp(),
-        'userId': userId!.uid,
+        'userId': userId,
       });
-      emit(PostAdded());
+
       await loadPosts();
     } catch (e) {
       emit(PostError(e.toString()));
